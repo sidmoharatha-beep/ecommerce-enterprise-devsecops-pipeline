@@ -12,36 +12,113 @@ Before working with this repository, make sure you have:
 - **Terraform CLI** — optional, but useful for local IaC validation with `terraform init` and `terraform validate`
 - **A GitHub account** — required to fork, push changes, and configure repository secrets for GitHub Actions
 
-## Week 1: Application Containerization & SAST
+## Project Overview
 
-### Objective
-Containerize an intentionally vulnerable e-commerce application (OWASP Juice Shop) with security hardening, and integrate Static Application Security Testing (SAST) using SonarQube as a CI/CD failure gate.
+This repository implements a four-week DevSecOps pipeline around **OWASP Juice Shop**, demonstrating layered security controls across source code, dependencies, infrastructure, containers, and runtime behavior.
 
-### Deliverables
+The pipeline is split across three contributor branches, each representing one week of work:
 
-| Deliverable | File |
-|-------------|------|
+| Branch | Owner | Scope |
+|--------|-------|-------|
+| `sidhartha-branch` | Sidhartha | Week 1: Application Containerization + SAST |
+| `chayan-branch` | Chayan | Week 2: Dependency SCA + Container Image Scanning |
+| `aditya-branch` | Aditya | Week 3: IaC Scanning + Week 4: DAST + Pipeline Hardening |
+
+The `main` branch carries the complete, unified 4-week implementation.
+
+## Repository Deliverables
+
+| Area | Files |
+|------|-------|
 | Target Application | `app/` — OWASP Juice Shop |
 | Hardened Container | `Dockerfile` |
-| CI/CD Pipeline | `.github/workflows/devsecops-pipeline.yml` |
+| Main CI/CD Workflow | `.github/workflows/devsecops-pipeline.yml` |
+| IaC Workflow | `.github/workflows/iac-scan.yml` |
 | SAST Configuration | `sonar-project.properties` |
-| Documentation | `docs/week1.md` |
+| Terraform Deployment | `terraform/` |
+| Documentation | `docs/week1.md`, `docs/week2.md`, `docs/week3.md`, `docs/week4.md` |
 
-### Hardening Controls Applied
+## Pipeline Flow
 
-- **Non-root user** execution (`appuser:appgroup`)
-- **Multi-stage Docker build** to exclude build tools from runtime image
-- **Minimal Alpine Linux** base image
-- **Dependency pinning** via `package-lock.json`
-- **Disabled post-install scripts** to reduce supply-chain attack surface
-- **Container health check** for runtime liveness
+```text
+Code Push / Pull Request
+        |
+        v
+Secret Scan (TruffleHog)
+        |
+        v
+Dependency Review (PR only)
+        |
+        v
+SAST (SonarQube)
+        |
+        v
+SCA (Trivy filesystem)
+        |
+        v
+Docker Build
+        |
+        v
+Container Image Scan (Trivy)
+        |
+        v
+DAST (OWASP ZAP)
 
-### GitHub Actions Workflow
+Separate workflow:
+Terraform Init/Validate -> Checkov -> TFSec
+```
 
-The Week 1 workflow runs on push/PR to `main` and `develop`:
+## Week-by-Week Architecture
 
-1. **SAST with SonarQube** — scans source code; fails if quality gate is missed.
-2. **Docker Build** — builds the hardened image.
+### Week 1 — Containerization and SAST
+
+- OWASP Juice Shop added as the target application
+- Hardened Docker image with non-root runtime and reduced attack surface
+- SonarQube SAST integrated into GitHub Actions
+
+See `docs/week1.md`.
+
+### Week 2 — Dependency and Container Scanning
+
+- **Trivy filesystem scan** added to inspect the repository for vulnerable dependencies
+- **Trivy image scan** added to scan the built Docker image
+- Pipeline fails on HIGH/CRITICAL findings
+
+See `docs/week2.md`.
+
+### Week 3 — IaC Scanning
+
+Terraform under `terraform/` models a minimal secure AWS deployment:
+
+- VPC with public and private subnets
+- Application Load Balancer with HTTPS listener
+- ACM certificate for TLS termination
+- ECS Fargate service for the Juice Shop container
+- CloudWatch logging
+- Encrypted S3 bucket for ALB access logs with versioning and public access blocked
+- Restrictive security groups between ALB and application tasks
+
+The dedicated IaC workflow runs Terraform init, validate, Checkov scan, and TFSec scan.
+
+See `docs/week3.md`.
+
+### Week 4 — DAST and Pipeline Hardening
+
+The main workflow now ends with a DAST stage:
+
+- Builds the Juice Shop image
+- Runs the container locally in GitHub Actions
+- Executes an **OWASP ZAP baseline scan**
+- Uploads the ZAP report as an artifact
+
+Additional workflow hardening includes:
+
+- Restricted `GITHUB_TOKEN` permissions
+- Dependency review on pull requests
+- TruffleHog secret scanning
+- Pinned action versions where practical
+
+See `docs/week4.md`.
 
 ## Required GitHub Secrets
 
@@ -128,9 +205,9 @@ terraform validate
 ## 4-Week Roadmap
 
 - **Week 1:** OWASP Juice Shop containerization + SonarQube SAST ✅
-- **Week 2:** SCA (Trivy/Snyk) + Container image scanning
-- **Week 3:** IaC scanning with Checkov/TFSec
-- **Week 4:** DAST with OWASP ZAP + pipeline hardening
+- **Week 2:** SCA (Trivy) + Container image scanning ✅
+- **Week 3:** IaC scanning with Checkov/TFSec ✅
+- **Week 4:** DAST with OWASP ZAP + pipeline hardening ✅
 
 ## Technologies
 
@@ -139,5 +216,8 @@ terraform validate
 - SonarQube
 - Trivy
 - Checkov
+- TFSec
 - OWASP ZAP
+- TruffleHog
+- Terraform
 - Docker
