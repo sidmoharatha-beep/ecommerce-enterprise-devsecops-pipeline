@@ -1,0 +1,13 @@
+node_modules
+.git
+.github
+Dockerfile
+docker-compose.yml
+README.md
+docs
+.env
+.env.local
+*.log
+logs
+.gitignore
+.circleci
