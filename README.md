@@ -48,8 +48,49 @@ The Week 1 workflow runs on push/PR to `main` and `develop`:
 
 ## Required GitHub Secrets
 
-- `SONAR_TOKEN` — SonarQube authentication token (from SonarCloud or self-hosted SonarQube)
-- `SONAR_HOST_URL` — your SonarQube server URL (use `https://sonarcloud.io` for SonarCloud, or your self-hosted URL)
+Only two secrets are required to run the SonarQube SAST stage:
+
+| Secret | Purpose |
+|--------|---------|
+| `SONAR_TOKEN` | Authentication token for SonarQube/SonarCloud |
+| `SONAR_HOST_URL` | URL of your SonarQube server |
+
+## How to Generate `SONAR_TOKEN` and `SONAR_HOST_URL`
+
+### Option A — SonarCloud (easiest, free for public repos)
+
+1. Go to **https://sonarcloud.io** and sign in with your GitHub account.
+2. Click your profile picture (top-right) → **My Account**.
+3. Go to the **Security** tab.
+4. Under **Generate Tokens**, enter a name like `devsecops-pipeline` and click **Generate**.
+5. Copy the token immediately — you will not see it again.
+6. Your `SONAR_HOST_URL` is exactly: `https://sonarcloud.io`
+
+### Option B — Self-Hosted SonarQube
+
+1. Open your SonarQube web interface (for example `http://your-server:9000`).
+2. Log in as an admin or the user that will run analysis.
+3. Click your user avatar (top-right) → **My Account**.
+4. Go to the **Security** tab.
+5. Enter a token name like `github-actions` and click **Generate**.
+6. Copy the token immediately.
+7. Your `SONAR_HOST_URL` is the base URL of your SonarQube server, e.g. `http://your-server:9000` or `https://sonar.yourcompany.com`.
+
+## How to Add Secrets to GitHub
+
+1. Open the repository on GitHub: `https://github.com/sidmoharatha-beep/ecommerce-enterprise-devsecops-pipeline`
+2. Click **Settings** (top tab).
+3. In the left sidebar, expand **Secrets and variables** and select **Actions**.
+4. Click **New repository secret**.
+5. Add the first secret:
+   - **Name:** `SONAR_TOKEN`
+   - **Value:** the token you copied from SonarQube/SonarCloud
+6. Click **Add secret**.
+7. Repeat for the second secret:
+   - **Name:** `SONAR_HOST_URL`
+   - **Value:** `https://sonarcloud.io` for SonarCloud, or your self-hosted SonarQube URL
+
+Once both secrets are added, the SonarQube SAST job will run automatically on the next push or pull request.
 
 ## Tools That Do NOT Need Secrets
 
