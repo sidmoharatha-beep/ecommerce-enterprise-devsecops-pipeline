@@ -2,17 +2,55 @@ name: DevSecOps Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, aditya-branch]
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
+  pull-requests: read
+  security-events: write
 
 jobs:
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog scan
+        uses: trufflesecurity/trufflehog@v3.88.18
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
   sast:
     name: SonarQube SAST
     runs-on: ubuntu-latest
+    needs: secret-scan
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,13 +58,13 @@ jobs:
           fetch-depth: 0
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.3.1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: SonarQube Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@master
+        uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -35,6 +73,8 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: sast
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,3 +86,50 @@ jobs:
         run: |
           docker build -t juice-shop:${{ github.sha }} .
           docker images juice-shop:${{ github.sha }}
+
+  dast:
+    name: OWASP ZAP DAST
+    runs-on: ubuntu-latest
+    needs: build-and-scan
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build application image
+        run: docker build -t juice-shop:${{ github.sha }} .
+
+      - name: Start application container
+        run: docker run -d --name juice-shop -p 3000:3000 juice-shop:${{ github.sha }}
+
+      - name: Wait for application
+        shell: bash
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000 > /dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          docker logs juice-shop
+          exit 1
+
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://127.0.0.1:3000
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report
+
+      - name: Upload ZAP report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: report_html.html
+          retention-days: 14
+
+      - name: Stop application container
+        if: always()
+        run: docker rm -f juice-shop
