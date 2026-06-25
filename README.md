@@ -2,10 +2,10 @@
 
 A 4-week enterprise-grade DevSecOps pipeline for e-commerce applications, built according to the Infotact Cybersecurity Project (Project 3).
 
-## Week 1: Application Containerization & SAST
+## Week 1-2: Containerization, SAST & SCA
 
 ### Objective
-Containerize an intentionally vulnerable e-commerce application (OWASP Juice Shop) with security hardening, and integrate Static Application Security Testing (SAST) using SonarQube as a CI/CD failure gate.
+Containerize an intentionally vulnerable e-commerce application (OWASP Juice Shop) with security hardening, integrate Static Application Security Testing (SAST) using SonarQube as a CI/CD failure gate, and add Software Composition Analysis (SCA) plus container image scanning with Trivy.
 
 ### Deliverables
 
@@ -15,6 +15,7 @@ Containerize an intentionally vulnerable e-commerce application (OWASP Juice Sho
 | Hardened Container | `Dockerfile` |
 | CI/CD Pipeline | `.github/workflows/devsecops-pipeline.yml` |
 | SAST Configuration | `sonar-project.properties` |
+| SCA & Container Scanning | `.github/workflows/devsecops-pipeline.yml` |
 | Documentation | `docs/week1.md` |
 
 ### Hardening Controls Applied
@@ -31,7 +32,9 @@ Containerize an intentionally vulnerable e-commerce application (OWASP Juice Sho
 The Week 1 workflow runs on push/PR to `main` and `develop`:
 
 1. **SAST with SonarQube** — scans source code; fails if quality gate is missed.
-2. **Docker Build** — builds the hardened image.
+2. **SCA with Trivy** — scans the repository filesystem for vulnerable dependencies and fails on high/critical findings.
+3. **Docker Build** — builds the hardened image.
+4. **Container Image Scan with Trivy** — scans the built image and fails on high/critical findings.
 
 ### Required GitHub Secrets
 
@@ -48,7 +51,7 @@ docker run -p 3000:3000 juice-shop
 ## 4-Week Roadmap
 
 - **Week 1:** OWASP Juice Shop containerization + SonarQube SAST ✅
-- **Week 2:** SCA (Trivy/Snyk) + Container image scanning
+- **Week 2:** SCA (Trivy) + Container image scanning ✅
 - **Week 3:** IaC scanning with Checkov/TFSec
 - **Week 4:** DAST with OWASP ZAP + pipeline hardening
 
