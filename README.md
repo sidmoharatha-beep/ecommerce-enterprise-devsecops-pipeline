@@ -2,6 +2,16 @@
 
 This repository implements a four-week DevSecOps pipeline around **OWASP Juice Shop**, demonstrating layered security controls across source code, dependencies, infrastructure, containers, and runtime behavior.
 
+## Prerequisites / Dependencies
+
+Before working with this repository, make sure you have:
+
+- **Git** — to clone the repository and work with branches
+- **Docker** — to build and run the OWASP Juice Shop container locally
+- **An AWS account** — only needed if you want to actually deploy the Terraform infrastructure; scanning and validation can run without it
+- **Terraform CLI** — optional, but useful for local IaC validation with `terraform init` and `terraform validate`
+- **A GitHub account** — required to fork, push changes, and configure repository secrets for GitHub Actions
+
 ## Project Scope
 
 The project uses an intentionally vulnerable e-commerce application to show how security tooling can be integrated into CI/CD in progressive stages:
@@ -93,10 +103,29 @@ Terraform Init/Validate -> Checkov -> TFSec
 
 ## Required GitHub Secrets
 
-- `SONAR_TOKEN`
-- `SONAR_HOST_URL`
+- `SONAR_TOKEN` — SonarQube authentication token (from SonarCloud or self-hosted SonarQube)
+- `SONAR_HOST_URL` — your SonarQube server URL (use `https://sonarcloud.io` for SonarCloud, or your self-hosted URL)
 
-## Local Validation Examples
+## Tools That Do NOT Need Secrets
+
+The following tools run inside GitHub Actions without extra API keys:
+
+- Checkov
+- TFSec
+- OWASP ZAP
+- TruffleHog
+- GitHub `dependency-review-action`
+- `terraform validate`
+
+## How to Add Secrets
+
+In GitHub, open your repository and go to:
+
+**Settings -> Secrets and variables -> Actions -> New repository secret**
+
+Add `SONAR_TOKEN` and `SONAR_HOST_URL` there before running the SonarQube stage in GitHub Actions.
+
+## Local Setup
 
 ### Docker
 
