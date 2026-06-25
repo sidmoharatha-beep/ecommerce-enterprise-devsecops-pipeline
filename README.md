@@ -2,6 +2,16 @@
 
 A 4-week enterprise-grade DevSecOps pipeline for e-commerce applications, built according to the Infotact Cybersecurity Project (Project 3).
 
+## Prerequisites / Dependencies
+
+Before working with this repository, make sure you have:
+
+- **Git** — to clone the repository and work with branches
+- **Docker** — to build and run the OWASP Juice Shop container locally
+- **An AWS account** — only needed if you want to actually deploy the Terraform infrastructure; scanning and validation can run without it
+- **Terraform CLI** — optional, but useful for local IaC validation with `terraform init` and `terraform validate`
+- **A GitHub account** — required to fork, push changes, and configure repository secrets for GitHub Actions
+
 ## Week 1-2: Containerization, SAST & SCA
 
 ### Objective
@@ -36,16 +46,41 @@ The Week 1 workflow runs on push/PR to `main` and `develop`:
 3. **Docker Build** — builds the hardened image.
 4. **Container Image Scan with Trivy** — scans the built image and fails on high/critical findings.
 
-### Required GitHub Secrets
+## Required GitHub Secrets
 
-- `SONAR_TOKEN` — SonarQube authentication token
-- `SONAR_HOST_URL` — SonarQube server URL
+- `SONAR_TOKEN` — SonarQube authentication token (from SonarCloud or self-hosted SonarQube)
+- `SONAR_HOST_URL` — your SonarQube server URL (use `https://sonarcloud.io` for SonarCloud, or your self-hosted URL)
 
-### Local Testing
+## Tools That Do NOT Need Secrets
+
+The following tools run inside GitHub Actions without extra API keys:
+
+- Checkov
+- TFSec
+- OWASP ZAP
+- TruffleHog
+- GitHub `dependency-review-action`
+- `terraform validate`
+
+## How to Add Secrets
+
+In GitHub, open your repository and go to:
+
+**Settings -> Secrets and variables -> Actions -> New repository secret**
+
+Add `SONAR_TOKEN` and `SONAR_HOST_URL` there before running the SonarQube stage in GitHub Actions.
+
+## Local Setup
 
 ```bash
 docker build -t juice-shop .
 docker run -p 3000:3000 juice-shop
+```
+
+```bash
+cd terraform
+terraform init -backend=false
+terraform validate
 ```
 
 ## 4-Week Roadmap
