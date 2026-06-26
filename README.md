@@ -54,24 +54,14 @@ Only two secrets are required to run the SonarQube SAST stage:
 
 ## How to Generate `SONAR_TOKEN` and `SONAR_HOST_URL`
 
-### Option A — SonarCloud (easiest, free for public repos)
+### SonarCloud (easiest, free for public repos)
 
 1. Go to **https://sonarcloud.io** and sign in with your GitHub account.
 2. Click your profile picture (top-right) → **My Account**.
 3. Go to the **Security** tab.
 4. Under **Generate Tokens**, enter a name like `devsecops-pipeline` and click **Generate**.
 5. Copy the token immediately — you will not see it again.
-6. Your `SONAR_HOST_URL` is exactly: `https://sonarcloud.io`
-
-### Option B — Self-Hosted SonarQube
-
-1. Open your SonarQube web interface (for example `http://your-server:9000`).
-2. Log in as an admin or the user that will run analysis.
-3. Click your user avatar (top-right) → **My Account**.
-4. Go to the **Security** tab.
-5. Enter a token name like `github-actions` and click **Generate**.
-6. Copy the token immediately.
-7. Your `SONAR_HOST_URL` is the base URL of your SonarQube server, e.g. `http://your-server:9000` or `https://sonar.yourcompany.com`.
+6. Your `SONAR_HOST_URL` is exactly: `https://sonarcloud.io'
 
 ## How to Add Secrets to GitHub
 
