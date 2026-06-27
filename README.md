@@ -52,8 +52,6 @@ Only two secrets are required to run the SonarQube SAST stage:
 | `SONAR_TOKEN` | Authentication token for SonarQube/SonarCloud |
 | `SONAR_HOST_URL` | URL of your SonarQube server |
 
-## How to Generate `SONAR_TOKEN` and `SONAR_HOST_URL`
-
 ### SonarCloud (easiest, free for public repos)
 
 1. Go to **https://sonarcloud.io** and sign in with your GitHub account.
