@@ -86,7 +86,7 @@ The following tools run inside GitHub Actions without extra API keys:
 - OWASP ZAP
 - TruffleHog
 - GitHub `dependency-review-action`
-- `terraform validate`
+- `terraform validate`   
 
 ## How to Add Secrets
 
